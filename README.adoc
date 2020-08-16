@@ -13,12 +13,12 @@ To launch your tests:
 
 To package your application:
 ```
-./mvnw clean package
+./mvnw clean compile vertx:package
 ```
 
 To run your application:
 ```
-./mvnw clean compile exec:java
+./mvnw clean compile vertx:run
 ```
 
 == Help
