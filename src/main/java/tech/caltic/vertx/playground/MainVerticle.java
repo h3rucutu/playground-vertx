@@ -2,6 +2,7 @@ package tech.caltic.vertx.playground;
 
 import com.github.rjeschke.txtmark.Processor;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpServer;
@@ -41,8 +42,16 @@ public class MainVerticle extends AbstractVerticle {
 
 	@Override
   public void start(Promise<Void> promise) throws Exception {
-    Future<Void> steps = prepareDatabase().compose(v -> startHttpServer());
-    steps.onComplete(ar -> {
+	  Promise<String> dbVerticle = Promise.promise();
+	  vertx.deployVerticle(new WikiDatabaseVerticle(), dbVerticle);
+
+	  dbVerticle.future().compose(id -> {
+	    Promise<String> httpVerticle = Promise.promise();
+	    vertx.deployVerticle("tech.caltic.vertx.playground.HttpServerVerticle",
+        new DeploymentOptions().setInstances(2), httpVerticle);
+
+	    return httpVerticle.future();
+    }).onComplete(ar -> {
       if (ar.succeeded()) {
         promise.complete();
       } else {
